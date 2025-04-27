@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using SocialMediaApi.Data.Repositories;
 using SocialMediaApi.Models;
+using SocialMediaApi.Models.Dtos;
 
 namespace SocialMediaApi.Endpoints;
 
@@ -8,18 +9,18 @@ public static class PostEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost("/posts", async (Post post, IPostRepository repo, IValidator<Post> validator) =>
+        app.MapPost("/posts", async (CreatePostDto post, IPostRepository repo, IValidator<CreatePostDto> validator) =>
         {
             var validationResult = await validator.ValidateAsync(post);
             if (!validationResult.IsValid)
                 return Results.ValidationProblem(validationResult.ToDictionary());
 
-            var postId = await repo.CreatePostAsync(post);
+            var postId = await repo.CreatePostAsync(post.ToModel());
             return Results.Created($"/posts/{postId}", postId);
         })
         .WithName("CreatePost")
         .WithTags("Posts")
-        .Accepts<Post>("application/json")
+        .Accepts<CreatePostDto>("application/json")
         .Produces<int>(StatusCodes.Status201Created)
         .ProducesValidationProblem();
 

@@ -1,11 +1,11 @@
 ﻿using FluentValidation;
-using SocialMediaApi.Models;
+using SocialMediaApi.Models.Dtos;
 
 namespace SocialMediaApi.Validators;
 
-public class PostValidator : AbstractValidator<Post>
+public class CreatePostDtoValidator : AbstractValidator<CreatePostDto>
 {
-    public PostValidator()
+    public CreatePostDtoValidator()
     {
         RuleFor(x => x.Title)
             .NotEmpty()

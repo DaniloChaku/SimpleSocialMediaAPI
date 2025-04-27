@@ -1,11 +1,11 @@
 ﻿using FluentValidation;
-using SocialMediaApi.Models;
+using SocialMediaApi.Models.Dtos;
 
 namespace SocialMediaApi.Validators;
 
-public class UserValidator : AbstractValidator<User>
+public class CreateUserDtoValidator : AbstractValidator<CreateUserDto>
 {
-    public UserValidator()
+    public CreateUserDtoValidator()
     {
         RuleFor(x => x.Username)
             .NotEmpty()
