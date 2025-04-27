@@ -9,6 +9,11 @@ public class SanitizerService : ISanitizerService
     public SanitizerService()
     {
         _sanitizer = new HtmlSanitizer();
+        ConfigureAllowedTags();
+    }
+
+    private void ConfigureAllowedTags()
+    {
         _sanitizer.AllowedTags.Clear();
         _sanitizer.AllowedTags.Add("b");
         _sanitizer.AllowedTags.Add("i");

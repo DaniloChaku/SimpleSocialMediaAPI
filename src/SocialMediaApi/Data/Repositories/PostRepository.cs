@@ -19,11 +19,12 @@ public class PostRepository : IPostRepository
         return await connection.ExecuteScalarAsync<int>(query, post);
     }
 
-    public async Task<IEnumerable<Post>> GetAllPostsAsync()
+    public async Task<List<Post>> GetAllPostsAsync()
     {
         var query = "SELECT * FROM posts;";
         using var connection = _context.CreateConnection();
-        return await connection.QueryAsync<Post>(query);
+        var posts = await connection.QueryAsync<Post>(query);
+        return posts.ToList();
     }
 
     public async Task LikePostAsync(Like like)
