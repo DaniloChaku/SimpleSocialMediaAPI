@@ -1,9 +1,11 @@
+using Dapper;
 using SocialMediaApi.Data;
 using SocialMediaApi.Data.Repositories;
 using SocialMediaApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
+DefaultTypeMap.MatchNamesWithUnderscores = true;
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<MigrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
