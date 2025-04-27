@@ -25,14 +25,14 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore
-
+        run: dotnet restore SocialMediaApp.sln
+      
       - name: Build
-        run: dotnet build --no-restore --configuration Release
-
+        run: dotnet build SocialMediaApp.sln --no-restore --configuration Release
+      
       - name: Test with Coverage
         run: |
-          dotnet test --no-build --configuration Release \
+          dotnet test SocialMediaApp.sln --no-build --configuration Release \
             --collect:"XPlat Code Coverage" \
             --logger trx
         env:
