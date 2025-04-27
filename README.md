@@ -12,7 +12,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone (https://github.com/DaniloChaku/SimpleSocialMediaAPI.git)
+git clone https://github.com/DaniloChaku/SimpleSocialMediaAPI.git
 cd SimpleSocialMediaAPI
 ```
 
