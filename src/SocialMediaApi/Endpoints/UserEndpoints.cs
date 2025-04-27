@@ -2,6 +2,7 @@
 using SocialMediaApi.Data.Repositories;
 using SocialMediaApi.Models;
 using SocialMediaApi.Models.Dtos;
+using SocialMediaApi.Services;
 
 namespace SocialMediaApi.Endpoints;
 
@@ -9,13 +10,22 @@ public static class UserEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost("/users", async (CreateUserDto user, IUserRepository repo, IValidator<CreateUserDto> validator) =>
+        app.MapPost("/users", async (
+            CreateUserDto userDto,
+            IUserRepository repo,
+            IValidator<CreateUserDto> validator,
+            ISanitizerService sanitizer) =>
         {
-            var validationResult = await validator.ValidateAsync(user);
+            var validationResult = await validator.ValidateAsync(userDto);
             if (!validationResult.IsValid)
                 return Results.ValidationProblem(validationResult.ToDictionary());
 
-            var userId = await repo.CreateUserAsync(user.ToModel());
+            var user = new User
+            {
+                Username = sanitizer.Sanitize(userDto.Username),
+            };
+
+            var userId = await repo.CreateUserAsync(user);
             return Results.Created($"/users/{userId}", userId);
         })
         .WithName("CreateUser")
