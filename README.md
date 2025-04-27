@@ -60,7 +60,7 @@ The coverage is less than 80% because I am required to write unit tests, while i
 
 - Was the code ready to run after generation? What did you have to change to make it usable?
   
-  The code was ready overall, but I had to ask for some improvements. However, it failed to use FakeLogger provided by Microsoft as a package properly. Also, it couldn't set up test coverage collection for SonarCloud.
+  The code was ready overall, but I had to ask for some improvements in quality and additional features. However, it failed to properly use FakeLogger provided by Microsoft as a package. Also, it couldn't set up test coverage collection for SonarCloud.
 
 - Which challenges did you face during completion of the task?
   
