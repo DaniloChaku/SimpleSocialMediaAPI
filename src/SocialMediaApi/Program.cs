@@ -1,5 +1,6 @@
 using SocialMediaApi.Data;
 using SocialMediaApi.Data.Repositories;
+using SocialMediaApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,9 @@ builder.Services.AddScoped<IPostRepository, PostRepository>();
 var app = builder.Build();
 
 await InitializeDatabase(app);
+
+UserEndpoints.Map(app);
+PostEndpoints.Map(app);
 
 app.Run();
 
