@@ -1,4 +1,6 @@
-﻿using SocialMediaApi.Data.Repositories;
+﻿using FluentValidation;
+using Microsoft.Extensions.Hosting;
+using SocialMediaApi.Data.Repositories;
 using SocialMediaApi.Models;
 
 namespace SocialMediaApi.Endpoints;
@@ -7,8 +9,12 @@ public static class PostEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost("/posts", async (Post post, IPostRepository repo) =>
+        app.MapPost("/posts", async (Post post, IPostRepository repo, IValidator<Post> validator) =>
         {
+            var validationResult = await validator.ValidateAsync(post);
+            if (!validationResult.IsValid)
+                return Results.ValidationProblem(validationResult.ToDictionary());
+
             var postId = await repo.CreatePostAsync(post);
             return Results.Created($"/posts/{postId}", postId);
         });
@@ -19,8 +25,12 @@ public static class PostEndpoints
             return Results.Ok(posts);
         });
 
-        app.MapPost("/posts/like", async (Like like, IPostRepository repo) =>
+        app.MapPost("/posts/like", async (Like like, IPostRepository repo, IValidator<Like> validator) =>
         {
+            var validationResult = await validator.ValidateAsync(like);
+            if (!validationResult.IsValid)
+                return Results.ValidationProblem(validationResult.ToDictionary());
+
             await repo.LikePostAsync(like);
             return Results.Ok();
         });

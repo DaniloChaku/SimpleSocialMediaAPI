@@ -1,7 +1,9 @@
 using Dapper;
+using FluentValidation;
 using SocialMediaApi.Data;
 using SocialMediaApi.Data.Repositories;
 using SocialMediaApi.Endpoints;
+using SocialMediaApi.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,7 @@ builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<MigrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
+builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
 
 var app = builder.Build();
 
