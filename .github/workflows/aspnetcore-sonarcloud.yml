@@ -40,6 +40,7 @@ jobs:
       - name: Install SonarCloud scanner
         run: |
           dotnet tool install --global dotnet-sonarscanner
+          dotnet tool install --global dotnet-coverage
       
       - name: Begin SonarCloud analysis
         run: |
@@ -48,8 +49,7 @@ jobs:
             /o:"${{ secrets.SONAR_ORGANIZATION }}" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.cobertura.xml" \
-            /d:sonar.cs.vstest.reportsPaths="**/test-results.trx"
+            /d:sonar.cs.dotcover.reportsPaths=coverage.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -58,11 +58,16 @@ jobs:
       
       - name: Test with Coverage
         run: |
-          dotnet test SocialMediaAPI.sln --no-build --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --logger "trx;LogFileName=test-results.trx"
+          dotnet-coverage collect 'dotnet test SocialMediaAPI.sln --no-build --configuration Release' -f xml -o coverage.xml
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      
+      - name: Debug Coverage File
+        run: |
+          echo "Listing coverage files:"
+          find . -name "*.xml" | grep -i coverage
+          echo "Content of coverage.xml (if exists):"
+          if [ -f coverage.xml ]; then head -n 20 coverage.xml; fi
       
       - name: End SonarCloud analysis
         run: |
