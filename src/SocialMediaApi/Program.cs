@@ -1,9 +1,12 @@
 using SocialMediaApi.Data;
+using SocialMediaApi.Data.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<MigrationService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPostRepository, PostRepository>();
 
 var app = builder.Build();
 
