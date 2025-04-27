@@ -1,4 +1,3 @@
-# .github/workflows/aspnetcore-sonarcloud.yml
 name: Build, Test, and Analyze with SonarCloud
 on:
   push:
@@ -38,10 +37,29 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
       
       - name: Install SonarCloud scanner
-        run: dotnet tool install --global dotnet-sonarscanner
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
       
-      - name: Install coverlet tool
-        run: dotnet tool install --global coverlet.console
+      - name: Create coverlet.runsettings
+        run: |
+          cat > coverlet.runsettings << 'EOF'
+          <?xml version="1.0" encoding="utf-8" ?>
+          <RunSettings>
+            <DataCollectionRunSettings>
+              <DataCollectors>
+                <DataCollector friendlyName="XPlat code coverage">
+                  <Configuration>
+                    <Format>cobertura</Format>
+                    <UseSourceLink>true</UseSourceLink>
+                    <SingleHit>false</SingleHit>
+                    <IncludeTestAssembly>false</IncludeTestAssembly>
+                    <SkipAutoProps>true</SkipAutoProps>
+                  </Configuration>
+                </DataCollector>
+              </DataCollectors>
+            </DataCollectionRunSettings>
+          </RunSettings>
+          EOF
       
       - name: Begin SonarCloud analysis
         run: |
@@ -50,10 +68,8 @@ jobs:
             /o:"${{ secrets.SONAR_ORGANIZATION }}" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
-            /d:sonar.cs.vstest.reportsPaths="**/TestResults/**/*.trx" \
-            /d:sonar.coverage.exclusions="**Test*.cs,**/*Test.cs,**/*Tests.cs,**/*TestCase.cs,**/*.cshtml" \
-            /d:sonar.verbose=true
+            /d:sonar.cs.opencover.reportsPaths="**/coverage/**/coverage.cobertura.xml" \
+            /d:sonar.cs.vstest.reportsPaths="**/TestResults/**/*.trx"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -64,34 +80,11 @@ jobs:
         run: |
           dotnet test SocialMediaAPI.sln --no-build --configuration Release \
             --collect:"XPlat Code Coverage" \
-            --settings CodeCoverage.runsettings \
+            --results-directory ./TestResults/ \
+            --settings coverlet.runsettings \
             --logger "trx;LogFileName=test-results.trx"
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
-      
-      - name: Create CodeCoverage.runsettings file
-        run: |
-          cat > CodeCoverage.runsettings << 'EOL'
-          <?xml version="1.0" encoding="utf-8"?>
-          <RunSettings>
-            <DataCollectionRunSettings>
-              <DataCollectors>
-                <DataCollector friendlyName="XPlat code coverage">
-                  <Configuration>
-                    <Format>opencover,cobertura</Format>
-                    <Exclude>[*]*.Program,[*]*Startup,[*]*Migrations.*,[*]*Tests*</Exclude>
-                    <IncludeTestAssembly>false</IncludeTestAssembly>
-                  </Configuration>
-                </DataCollector>
-              </DataCollectors>
-            </DataCollectionRunSettings>
-          </RunSettings>
-          EOL
-        shell: bash
-      
-      - name: Debug - List coverage files
-        run: find . -name "*.xml" -o -name "*.trx"
-        shell: bash
       
       - name: End SonarCloud analysis
         run: |
