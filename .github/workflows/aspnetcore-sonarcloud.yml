@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ "main", "master" ]
   workflow_dispatch:
+
 jobs:
   build-test-analyze:
     name: Build, Test, and SonarCloud
@@ -14,58 +15,89 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          # SonarCloud needs the full history to assign issues correctly
           fetch-depth: 0
-      
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      
+
       - name: Restore dependencies
         run: dotnet restore SocialMediaAPI.sln
-      
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: 17
-          distribution: 'zulu'
-      
+          distribution: 'zulu' # Recommended for SonarCloud
+
       - name: Cache SonarCloud packages
         uses: actions/cache@v3
         with:
-          path: ~\sonar\cache
+          # Use $HOME/.sonar/cache for Linux runners
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      
+
+      - name: Cache SonarCloud scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v3
+        with:
+          path: ./.sonar/scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+
       - name: Install SonarCloud scanner
+        # Run condition to install only if not found in cache
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        shell: bash
         run: |
-          dotnet tool install --global dotnet-sonarscanner
-      
+          mkdir -p ./.sonar/scanner
+          dotnet tool install dotnet-sonarscanner --tool-path ./.sonar/scanner
+
       - name: Begin SonarCloud analysis
+        # Reference the scanner from the tool path
         run: |
-          dotnet sonarscanner begin \
+          ./.sonar/scanner/dotnet-sonarscanner begin \
             /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
             /o:"${{ secrets.SONAR_ORGANIZATION }}" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.cobertura.xml" \
-            /d:sonar.cs.vstest.reportsPaths="**/test-results.trx"
+            /d:sonar.cs.vstest.reportsPaths="**/test-results.trx" \
+            /d:sonar.pullrequest.provider="github" \
+            /d:sonar.pullrequest.github.repository="${{ github.repository }}" \
+            /d:sonar.pullrequest.key="${{ github.event.pull_request.number }}" \
+            /d:sonar.pullrequest.branch="${{ github.head_ref }}" \
+            /d:sonar.pullrequest.base="${{ github.base_ref }}"
         env:
+          # GITHUB_TOKEN is required for pull request decoration
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+          # SONAR_TOKEN is used for authentication with SonarCloud
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Build
         run: dotnet build SocialMediaAPI.sln --no-restore --configuration Release
-      
+
       - name: Test with Coverage
         run: |
           dotnet test SocialMediaAPI.sln --no-build --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --logger "trx;LogFileName=test-results.trx"
+            --settings coveragesettings.runsettings \
+            --logger "trx;LogFileName=test-results.trx" \
+            --collect:"XPlat Code Coverage"
+            # The --collect flag might be redundant when using runsettings,
+            # but it doesn't hurt to leave it for clarity or older SDKs.
+            # Ensure the DataCollector is enabled in the runsettings file.
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
-      
+
       - name: End SonarCloud analysis
+        # Reference the scanner from the tool path
         run: |
-          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITHUB_TOKEN is required for pull request decoration (if needed during end step)
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # SONAR_TOKEN is used for authentication with SonarCloud
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
