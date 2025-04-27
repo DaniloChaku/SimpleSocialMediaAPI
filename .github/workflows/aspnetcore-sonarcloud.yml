@@ -40,27 +40,6 @@ jobs:
         run: |
           dotnet tool install --global dotnet-sonarscanner
       
-      - name: Create coverlet.runsettings
-        run: |
-          cat > coverlet.runsettings << 'EOF'
-          <?xml version="1.0" encoding="utf-8" ?>
-          <RunSettings>
-            <DataCollectionRunSettings>
-              <DataCollectors>
-                <DataCollector friendlyName="XPlat code coverage">
-                  <Configuration>
-                    <Format>cobertura</Format>
-                    <UseSourceLink>true</UseSourceLink>
-                    <SingleHit>false</SingleHit>
-                    <IncludeTestAssembly>false</IncludeTestAssembly>
-                    <SkipAutoProps>true</SkipAutoProps>
-                  </Configuration>
-                </DataCollector>
-              </DataCollectors>
-            </DataCollectionRunSettings>
-          </RunSettings>
-          EOF
-      
       - name: Begin SonarCloud analysis
         run: |
           dotnet sonarscanner begin \
@@ -68,8 +47,8 @@ jobs:
             /o:"${{ secrets.SONAR_ORGANIZATION }}" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage/**/coverage.cobertura.xml" \
-            /d:sonar.cs.vstest.reportsPaths="**/TestResults/**/*.trx"
+            /d:sonar.cs.opencover.reportsPaths="./coverage.opencover.xml" \
+            /d:sonar.cs.vstest.reportsPaths="./TestResults/*.trx"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -78,13 +57,20 @@ jobs:
       
       - name: Test with Coverage
         run: |
-          dotnet test SocialMediaAPI.sln --no-build --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./TestResults/ \
-            --settings coverlet.runsettings \
-            --logger "trx;LogFileName=test-results.trx"
+          dotnet test tests/SocialMediaApi.UnitTests/SocialMediaApi.UnitTests.cproj \
+            --no-build --configuration Release \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput="../../../coverage.opencover.xml" \
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory ./TestResults/
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      
+      - name: Debug Coverage File
+        run: |
+          ls -la
+          cat coverage.opencover.xml || echo "Coverage file not found"
       
       - name: End SonarCloud analysis
         run: |
