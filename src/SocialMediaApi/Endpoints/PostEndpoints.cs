@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using SocialMediaApi.Data.Repositories;
+using SocialMediaApi.Constants;
 using SocialMediaApi.Models;
 using SocialMediaApi.Models.Dtos;
 using SocialMediaApi.Services;
@@ -10,19 +10,19 @@ public static class PostEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost("/posts", CreatePost)
+        app.MapPost(ApiRoutes.Posts.Create, CreatePost)
             .WithName("CreatePost")
             .WithTags("Posts")
             .Accepts<CreatePostDto>("application/json")
             .Produces<int>(StatusCodes.Status201Created)
             .ProducesValidationProblem();
 
-        app.MapGet("/posts", GetAllPosts)
+        app.MapGet(ApiRoutes.Posts.GetAll, GetAllPosts)
             .WithName("GetPosts")
             .WithTags("Posts")
             .Produces<List<PostDto>>(StatusCodes.Status200OK);
 
-        app.MapPost("/posts/like", LikePost)
+        app.MapPost(ApiRoutes.Posts.Like, LikePost)
             .WithName("LikePost")
             .WithTags("Posts")
             .Accepts<Like>("application/json")

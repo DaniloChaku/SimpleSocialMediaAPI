@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using SocialMediaApi.Constants;
 using SocialMediaApi.Models;
 using SocialMediaApi.Models.Dtos;
 using SocialMediaApi.Services;
@@ -9,14 +10,14 @@ public static class UserEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost("/users", CreateUser)
+        app.MapPost(ApiRoutes.Users.Create, CreateUser)
             .WithName("CreateUser")
             .WithTags("Users")
             .Accepts<CreateUserDto>("application/json")
             .Produces<int>(StatusCodes.Status201Created)
             .ProducesValidationProblem();
 
-        app.MapPost("/users/follow", FollowUser)
+        app.MapPost(ApiRoutes.Users.Follow, FollowUser)
             .WithName("FollowUser")
             .WithTags("Users")
             .Accepts<Follow>("application/json")

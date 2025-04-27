@@ -1,8 +1,6 @@
 using Dapper;
 using FluentValidation;
-using SocialMediaApi.Data;
 using SocialMediaApi.Extensions;
-using SocialMediaApi.Middleware;
 using SocialMediaApi.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
