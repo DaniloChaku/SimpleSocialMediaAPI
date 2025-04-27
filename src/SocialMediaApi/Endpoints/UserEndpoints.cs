@@ -16,7 +16,12 @@ public static class UserEndpoints
 
             var userId = await repo.CreateUserAsync(user);
             return Results.Created($"/users/{userId}", userId);
-        });
+        })
+        .WithName("CreateUser")
+        .WithTags("Users")
+        .Accepts<User>("application/json")
+        .Produces<int>(StatusCodes.Status201Created)
+        .ProducesValidationProblem();
 
         app.MapPost("/users/follow", async (Follow follow, IUserRepository repo, IValidator<Follow> validator) =>
         {
@@ -26,6 +31,11 @@ public static class UserEndpoints
 
             await repo.FollowUserAsync(follow);
             return Results.Ok();
-        });
+        })
+        .WithName("FollowUser")
+        .WithTags("Users")
+        .Accepts<Follow>("application/json")
+        .Produces(StatusCodes.Status200OK)
+        .ProducesValidationProblem();
     }
 }

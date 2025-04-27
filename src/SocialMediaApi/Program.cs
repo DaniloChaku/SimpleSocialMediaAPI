@@ -14,7 +14,27 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Social Media API",
+        Version = "v1",
+        Description = "A simple Minimal API for a social media app.",
+    });
+});
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Social Media API V1");
+    });
+}
 
 await InitializeDatabase(app);
 
