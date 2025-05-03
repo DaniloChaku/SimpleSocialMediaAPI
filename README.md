@@ -68,4 +68,7 @@ The coverage is less than 80% because I am required to write unit tests, while i
 
 - Which specific prompts you learned as a good practice to complete the task?
   
-  I didn't really learn any specific prompts. The pattern I used was task + [technologies] + [examples]
+  - Task + [technologies] + [examples].  
+  - Write unit tests with [framework and libraries]. Use [naming conventions] naming conventions.
+
+Note: I'm aware that writing polite words wastes tokens and increases the cost of prompts, which is why I won't do so when using the corporate AI. I used generally available AIs with my personal accounts for this task.
